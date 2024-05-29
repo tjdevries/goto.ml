@@ -1,0 +1,21 @@
+(executable
+ (public_name loop)
+ (name loop)
+ (modules loop)
+ (libraries goto fmt)
+ (preprocess (pps ppx_deriving.enum)))
+
+(executable
+ (public_name for_lines)
+ (name for_lines)
+ (modules for_lines)
+ (libraries goto fmt)
+ (preprocess (pps ppx_deriving.enum)))
+
+; OCaml 5.3 only
+; (executable
+;  (public_name coming_back)
+;  (name coming_back)
+;  (modules coming_back)
+;  (libraries goto fmt))
+
