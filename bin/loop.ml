@@ -1,9 +1,9 @@
-open Goto
+open Goto.GotoModule
 
 let do_inner_loop i limit =
   let module InnerLoop = struct
-    type label = [ `Loop | `Done ] [@@deriving enum]
-    type ret = unit
+    type labels = [ `Loop | `Done ] [@@deriving enum]
+    type return = unit
 
     let index = ref i
 
@@ -20,8 +20,8 @@ let do_inner_loop i limit =
 let do_loop index limit =
   let index = ref index in
   let module Loop = struct
-    type label = [ `Loop | `Done ] [@@deriving enum]
-    type ret = unit
+    type labels = [ `Loop | `Done ] [@@deriving enum]
+    type return = unit
 
     let chunk goto return = function
       | `Loop ->

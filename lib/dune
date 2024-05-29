@@ -1,3 +1,4 @@
 (library
  (name goto)
+ (libraries fmt)
  (preprocess (pps ppx_deriving.std)))

@@ -12,10 +12,12 @@
  (libraries goto fmt)
  (preprocess (pps ppx_deriving.enum)))
 
-; OCaml 5.3 only
-; (executable
-;  (public_name coming_back)
-;  (name coming_back)
-;  (modules coming_back)
-;  (libraries goto fmt))
+; OCaml 5.3 only -> coming_back
+
+(executables
+ (public_names loop_compsoy return_compsoy)
+ (names loop_compsoy return_compsoy)
+ (modules loop_compsoy return_compsoy)
+ (libraries goto fmt)
+ (preprocess (pps ppx_deriving.enum)))
 

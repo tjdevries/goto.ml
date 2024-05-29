@@ -1,4 +1,4 @@
-open Goto
+open Goto.GotoModule
 
 [@@@ocamlformat "disable"]
 let find_line path predicate =
@@ -6,8 +6,8 @@ let find_line path predicate =
   let handle = ref None in
 
   let module ForLines = struct
-    type label = Start | Cleanup | Done [@@deriving enum]
-    type ret = string
+    type labels = Start | Cleanup | Done [@@deriving enum]
+    type return = string
 
     let chunk goto return = function
 | Start   -> Fmt.pr "=> opening %s@." path;

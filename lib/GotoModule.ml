@@ -6,23 +6,23 @@ let ( let> ) = Option.bind
 type 'a goto = 'a -> unit
 
 module type IMPL = sig
-  type label [@@deriving enum]
-  type ret
+  type labels [@@deriving enum]
+  type return
 
-  val chunk : label goto -> ret goto -> label -> unit
+  val chunk : labels goto -> return goto -> labels -> unit
 end
 
 module type Block = sig
-  type ret
+  type return
 
-  val call : unit -> ret option
+  val call : unit -> return option
 end
 
-module Make (I : IMPL) : Block with type ret = I.ret = struct
+module Make (I : IMPL) : Block with type return = I.return = struct
   include I
 
-  exception Goto of label
-  exception Return of ret
+  exception Goto of labels
+  exception Return of return
 
   let goto label = raise (Goto label)
   let return result = raise (Return result)
@@ -30,16 +30,16 @@ module Make (I : IMPL) : Block with type ret = I.ret = struct
   let rec handle label =
     match chunk goto return label with
     | () ->
-        let> label = label_of_enum @@ (label_to_enum label + 1) in
+        let> label = labels_of_enum @@ (labels_to_enum label + 1) in
         handle label
     | exception Goto label -> handle label
     | exception Return result -> Some result
 
-  let call () : ret option =
-    let> label = label_of_enum min_label in
+  let call () : return option =
+    let> label = labels_of_enum min_labels in
     handle label
 end
 
-let call (type a) (module I : IMPL with type ret = a) : a option =
+let call (type a) (module I : IMPL with type return = a) : a option =
   let module Block = Make (I) in
   Block.call ()
