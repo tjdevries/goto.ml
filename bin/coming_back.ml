@@ -3,66 +3,88 @@ open Effect.Deep
 
 module type GOTO = sig
   type label
-  type ret
+  type value
 
-  val chunk : ((bool * label) -> ret) -> label -> ret
+  val chunk : (label -> value) -> (label -> unit) -> label -> value
 end
 
 module MakeGoto (G : GOTO) = struct
-  type _ eff += Goto : (bool * G.label) -> G.ret eff
+  type label = G.label
+  type value = G.value
 
-  let goto label = perform (Goto label)
+  type _ eff += 
+    | Goto :  label -> value eff
+    | Comeback : label -> unit eff
 
-  let rec handle f : G.ret =
-    match f goto with
+  let goto label = 
+    perform (Goto label)
+
+  let comeback label =
+    perform (Comeback label)
+
+  let rec handle (f : unit -> value) : value =
+    match f () with
     | result -> result
-    | effect (Goto (c, label)), k -> 
-        let result = handle (fun goto -> G.chunk goto label ) in
-        if c then continue k result else result
+    | effect (Goto label), _ ->
+        handle (fun () -> G.chunk goto comeback label)
+    | effect (Comeback label), k ->
+        handle (fun () -> 
+          let _ = G.chunk goto comeback label in
+          continue k ())
 
-  let start label : G.ret = 
-    handle (fun goto -> goto (false, label))
+  let start (label : label) : value = 
+    handle (fun () -> goto label)
 end
 
-module Defer = MakeGoto(struct
-  type ret = string
-  type label = [ 
-    | `read of string
-    | `defer of (unit -> unit)
-    | `reading of in_channel
-    | `cleanup ]
+module T = (struct
+  type value = string
+  type label =
+    | Read of string
+    | Defer of (unit -> unit)
+    | Reading of in_channel
+    | Cleanup 
 
   let deferred = ref []
   let lines = ref ""
 
-  let defer goto f = 
-    goto (true, `defer f) |> ignore
+  let max_defers = 5
 
-  let chunk goto label : ret = match label with
-    | `read path -> 
+  let chunk goto comeback =
+    let defer f = comeback (Defer f) |> ignore in function
+    | Read path -> 
+        Format.printf "1. Read %s@." path;
         let handle = open_in path in
-
-        defer goto (fun () -> 
-          Fmt.pr "Closing Handle!@.";
+        defer (fun () -> 
+          Format.printf "6. deferred: Closing Handle!@.";
           close_in handle);
 
-        goto (true, `reading handle)
-    | `reading handle ->
-        defer goto (fun () -> Fmt.pr "And another one!@.");
+        goto (Reading handle)
+    | Reading handle ->
+        Format.printf "2. About to read handle!@.";
+        defer (fun () -> Format.printf "5. deferred: And another one!@.");
 
+        Format.printf "3. Reading handle!@.";
         let n = in_channel_length handle in
         lines := really_input_string handle n;
-        goto (false, `cleanup)
-    | `defer f ->
+        goto Cleanup
+    | Defer f ->
+        if List.length !deferred >= max_defers then (
+          Format.printf "\n==== TOO MANY DEFERS I QUIT ====\n\n";
+          goto Cleanup |> ignore
+        );
+
+        Format.printf "  -> appending defer@.";
         deferred := f ::!deferred;
         !lines
-    | `cleanup ->
+    | Cleanup ->
+        Format.printf "4. Cleanup!@.";
         List.iter (fun f -> f ()) !deferred;
         !lines
 
 end)
-
+  
 let _ = 
-  Fmt.pr "==> Starting Now <==@.";
-  let msg = Defer.start (`read "README.md") in
-  Fmt.pr "Done with:@.%s@." msg
+  let open MakeGoto(T) in
+  Format.printf "@.==> Starting Now <==@.";
+  let msg = start (Read "README.md") in
+  Format.printf "7. Done with reading: %d characters@." (String.length msg)

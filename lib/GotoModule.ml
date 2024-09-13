@@ -1,14 +1,13 @@
-[@@@warning "-32"]
-(* Kind of annoying, but ppx_deriving.enum makes these error *)
-
 let ( let> ) = Option.bind
 
 type 'a goto = 'a -> unit
 
 module type IMPL = sig
-  type labels [@@deriving enum]
+  type labels
   type return
 
+  val default : labels
+  val next : labels -> labels option
   val chunk : labels goto -> return goto -> labels -> unit
 end
 
@@ -30,13 +29,13 @@ module Make (I : IMPL) : Block with type return = I.return = struct
   let rec handle label =
     match chunk goto return label with
     | () ->
-        let> label = labels_of_enum @@ (labels_to_enum label + 1) in
+        let> label = next label in
         handle label
     | exception Goto label -> handle label
     | exception Return result -> Some result
 
   let call () : return option =
-    let> label = labels_of_enum min_labels in
+    let> label = Some default in
     handle label
 end
 

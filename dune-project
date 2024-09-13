@@ -1,26 +1,17 @@
 (lang dune 3.8)
 
 (name goto)
-
 (generate_opam_files true)
 
-(source
- (github username/reponame))
+(source (github tjdevries/goto.ml))
+(authors "TJ DeVries")
+(maintainers "TJ DeVries")
 
-(authors "Author Name")
-
-(maintainers "Maintainer Name")
-
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(license MIT)
 
 (package
  (name goto)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "`goto` in OCaml")
+ (description "`goto` synopsis")
  (depends ocaml dune)
- (tags
-  (topics "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
+ (tags ("meme")))
