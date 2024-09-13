@@ -13,5 +13,5 @@
  (name goto)
  (synopsis "`goto` in OCaml")
  (description "`goto` synopsis")
- (depends ocaml dune)
+ (depends ocaml dune ocaml-lsp-server)
  (tags ("meme")))

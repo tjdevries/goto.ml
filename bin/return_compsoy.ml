@@ -12,16 +12,17 @@ done:
 open Goto.GotoFunc
 
 module Filter = struct
-  type t = Init | Loop | Done
+  type t = 
+    | Init
+    | Loop
+    | Done
+
   let init = Init
   let next = function
     | Init -> Some Loop
     | Loop -> Some Done
     | Done -> None
 end
-
-(* alternative syntax, not sure which is nicer *)
-(* let labels : Filter.t labels = (module Filter) *)
 
 let filter ~start ~stop predicate =
   let index = ref 0 in
@@ -48,7 +49,8 @@ let filter ~start ~stop predicate =
             (* Continue looping *)
             goto Loop
   | Done -> 
-            Format.printf "Done!@."
+            Format.printf "Done!@.";
+            return (-1)
 
 let _ = 
   match filter ~start:2 ~stop:10 (fun i -> i == 5) with

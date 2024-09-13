@@ -11,6 +11,7 @@ bug-reports: "https://github.com/tjdevries/goto.ml/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.8"}
+  "ocaml-lsp-server"
   "odoc" {with-doc}
 ]
 build: [
